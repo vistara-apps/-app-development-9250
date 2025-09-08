@@ -1,13 +1,24 @@
 import { useState } from 'react';
+import { WagmiProvider } from 'wagmi';
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { config } from './config/wagmi';
+import { GameProvider } from './context/GameContext';
 import Header from './components/Header';
 import FighterCard from './components/FighterCard';
 import ArenaSelection from './components/ArenaSelection';
 import FighterSelection from './components/FighterSelection';
 import BattleArena from './components/BattleArena';
+import Marketplace from './components/Marketplace';
+import Training from './components/Training';
+import Tournament from './components/Tournament';
+import NotificationSystem from './components/NotificationSystem';
 import GameStats from './components/GameStats';
 import { SAMPLE_FIGHTERS, ARENA_MODES } from './data/gameData';
-import { Swords, Shield, Zap } from 'lucide-react';
+import { Swords, Shield, Zap, Trophy } from 'lucide-react';
+
+const queryClient = new QueryClient();
 
 function App() {
   const [currentView, setCurrentView] = useState('home'); // home, arena-select, fighter-select, battle
@@ -89,10 +100,11 @@ function App() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-4 gap-6">
         <motion.div
           className="card text-center cursor-pointer hover:shadow-glow"
           whileHover={{ y: -5 }}
+          onClick={handleEnterArena}
         >
           <Swords className="h-12 w-12 text-accent mx-auto mb-4" />
           <h4 className="text-lg font-semibold text-white mb-2">Quick Battle</h4>
@@ -102,6 +114,7 @@ function App() {
         <motion.div
           className="card text-center cursor-pointer hover:shadow-glow"
           whileHover={{ y: -5 }}
+          onClick={() => setCurrentView('training')}
         >
           <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
           <h4 className="text-lg font-semibold text-white mb-2">Training</h4>
@@ -111,20 +124,35 @@ function App() {
         <motion.div
           className="card text-center cursor-pointer hover:shadow-glow"
           whileHover={{ y: -5 }}
+          onClick={() => setCurrentView('marketplace')}
         >
           <Zap className="h-12 w-12 text-accent mx-auto mb-4" />
           <h4 className="text-lg font-semibold text-white mb-2">Marketplace</h4>
           <p className="text-gray-400 text-sm">Buy and sell fighters</p>
+        </motion.div>
+
+        <motion.div
+          className="card text-center cursor-pointer hover:shadow-glow"
+          whileHover={{ y: -5 }}
+          onClick={() => setCurrentView('tournament')}
+        >
+          <Trophy className="h-12 w-12 text-success mx-auto mb-4" />
+          <h4 className="text-lg font-semibold text-white mb-2">Tournaments</h4>
+          <p className="text-gray-400 text-sm">Compete for glory</p>
         </motion.div>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-bg via-surface to-bg">
-      <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 py-8">
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
+          <GameProvider>
+            <div className="min-h-screen bg-gradient-to-br from-bg via-surface to-bg">
+              <Header />
+              
+              <main className="max-w-7xl mx-auto px-4 py-8">
         <AnimatePresence mode="wait">
           {currentView === 'home' && (
             <motion.div
@@ -186,9 +214,51 @@ function App() {
               />
             </motion.div>
           )}
+
+          {currentView === 'marketplace' && (
+            <motion.div
+              key="marketplace"
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -100 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Marketplace onBack={() => setCurrentView('home')} />
+            </motion.div>
+          )}
+
+          {currentView === 'training' && (
+            <motion.div
+              key="training"
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -100 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Training onBack={() => setCurrentView('home')} />
+            </motion.div>
+          )}
+
+          {currentView === 'tournament' && (
+            <motion.div
+              key="tournament"
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -100 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Tournament onBack={() => setCurrentView('home')} />
+            </motion.div>
+          )}
         </AnimatePresence>
-      </main>
-    </div>
+              </main>
+              
+              <NotificationSystem />
+            </div>
+          </GameProvider>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
 
